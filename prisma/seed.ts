@@ -1,6 +1,7 @@
-import { PrismaClient } from '../src/generated/prisma/client.js'
-
 import { PrismaPg } from '@prisma/adapter-pg'
+
+import { TOP_100_STOCKS } from '../src/data/top100-stocks'
+import { PrismaClient } from '../src/generated/prisma/client.js'
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -9,26 +10,22 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter })
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  console.log('Seeding Bursa Top 100 universe...')
 
-  // Clear existing todos
-  await prisma.todo.deleteMany()
+  await prisma.dailyPrice.deleteMany()
+  await prisma.syncRun.deleteMany()
+  await prisma.stock.deleteMany()
 
-  // Create example todos
-  const todos = await prisma.todo.createMany({
-    data: [
-      { title: 'Buy groceries' },
-      { title: 'Read a book' },
-      { title: 'Workout' },
-    ],
+  const result = await prisma.stock.createMany({
+    data: TOP_100_STOCKS,
   })
 
-  console.log(`✅ Created ${todos.count} todos`)
+  console.log(`Seeded ${result.count} tracked stocks`)
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Error seeding database:', e)
+  .catch((error) => {
+    console.error('Seed failed:', error)
     process.exit(1)
   })
   .finally(async () => {

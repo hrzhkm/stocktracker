@@ -7,8 +7,59 @@ datasource db {
   provider = "postgresql"
 }
 
-model Todo {
-  id        Int      @id @default(autoincrement())
-  title     String
-  createdAt DateTime @default(now())
+model Stock {
+  id             Int          @id @default(autoincrement())
+  rank           Int          @unique
+  stockCode      String       @unique
+  providerSymbol String       @unique
+  name           String
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  dailyPrices    DailyPrice[]
+
+  @@index([isActive, rank])
+}
+
+model DailyPrice {
+  id          Int      @id @default(autoincrement())
+  stockId     Int
+  tradingDate DateTime
+  open        Float
+  high        Float
+  low         Float
+  close       Float
+  volume      Float
+  currency    String   @default("MYR")
+  fetchedAt   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  stock       Stock    @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@unique([stockId, tradingDate])
+  @@index([tradingDate])
+  @@index([stockId, tradingDate(sort: Desc)])
+}
+
+model SyncRun {
+  id           Int      @id @default(autoincrement())
+  provider     String
+  targetDate   DateTime
+  status       SyncStatus
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+  errorSummary String?
+  rowsInserted Int      @default(0)
+  rowsUpdated  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([targetDate, status])
+  @@index([createdAt(sort: Desc)])
+}
+
+enum SyncStatus {
+  pending
+  success
+  failed
 }

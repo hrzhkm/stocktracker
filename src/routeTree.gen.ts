@@ -10,33 +10,76 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiCronSyncDailyPricesRouteImport } from './routes/api/cron/sync-daily-prices'
+import { Route as ApiExportsLatestCsvRouteImport } from './routes/api/exports/latest.csv'
+import { Route as ApiExportsHistoryCsvRouteImport } from './routes/api/exports/history.csv'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronSyncDailyPricesRoute = ApiCronSyncDailyPricesRouteImport.update({
+  id: '/api/cron/sync-daily-prices',
+  path: '/api/cron/sync-daily-prices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExportsLatestCsvRoute = ApiExportsLatestCsvRouteImport.update({
+  id: '/api/exports/latest/csv',
+  path: '/api/exports/latest/csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiExportsHistoryCsvRoute = ApiExportsHistoryCsvRouteImport.update({
+  id: '/api/exports/history/csv',
+  path: '/api/exports/history/csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/cron/sync-daily-prices': typeof ApiCronSyncDailyPricesRoute
+  '/api/exports/history/csv': typeof ApiExportsHistoryCsvRoute
+  '/api/exports/latest/csv': typeof ApiExportsLatestCsvRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/cron/sync-daily-prices': typeof ApiCronSyncDailyPricesRoute
+  '/api/exports/history/csv': typeof ApiExportsHistoryCsvRoute
+  '/api/exports/latest/csv': typeof ApiExportsLatestCsvRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/cron/sync-daily-prices': typeof ApiCronSyncDailyPricesRoute
+  '/api/exports/history/csv': typeof ApiExportsHistoryCsvRoute
+  '/api/exports/latest/csv': typeof ApiExportsLatestCsvRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/api/cron/sync-daily-prices'
+    | '/api/exports/history/csv'
+    | '/api/exports/latest/csv'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/api/cron/sync-daily-prices'
+    | '/api/exports/history/csv'
+    | '/api/exports/latest/csv'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/cron/sync-daily-prices'
+    | '/api/exports/history/csv'
+    | '/api/exports/latest/csv'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiCronSyncDailyPricesRoute: typeof ApiCronSyncDailyPricesRoute
+  ApiExportsHistoryCsvRoute: typeof ApiExportsHistoryCsvRoute
+  ApiExportsLatestCsvRoute: typeof ApiExportsLatestCsvRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +91,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/sync-daily-prices': {
+      id: '/api/cron/sync-daily-prices'
+      path: '/api/cron/sync-daily-prices'
+      fullPath: '/api/cron/sync-daily-prices'
+      preLoaderRoute: typeof ApiCronSyncDailyPricesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/exports/latest/csv': {
+      id: '/api/exports/latest/csv'
+      path: '/api/exports/latest/csv'
+      fullPath: '/api/exports/latest/csv'
+      preLoaderRoute: typeof ApiExportsLatestCsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/exports/history/csv': {
+      id: '/api/exports/history/csv'
+      path: '/api/exports/history/csv'
+      fullPath: '/api/exports/history/csv'
+      preLoaderRoute: typeof ApiExportsHistoryCsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiCronSyncDailyPricesRoute: ApiCronSyncDailyPricesRoute,
+  ApiExportsHistoryCsvRoute: ApiExportsHistoryCsvRoute,
+  ApiExportsLatestCsvRoute: ApiExportsLatestCsvRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
