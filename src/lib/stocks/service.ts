@@ -2,7 +2,7 @@ import { prisma } from '@/db'
 import type { SyncStatus } from '@/generated/prisma/client'
 
 import { buildCsv } from './csv'
-import { fetchEodhdExchangeBars, normalizeEodhdBulkResponse } from './eodhd'
+import { fetchEodhdTrackedBars } from './eodhd'
 import { getKualaLumpurDateString, toIsoDate, toStartOfUtcDay } from './time'
 import type { DashboardData, DailyBar, StockHistoryData, StockSnapshot, StockSummary, SyncResult } from './types'
 
@@ -222,24 +222,26 @@ export async function exportFullHistoryCsv() {
   )
 }
 
-export async function runDailySync(targetDate = getKualaLumpurDateString()): Promise<SyncResult> {
+export async function runDailySync(targetDate?: string): Promise<SyncResult> {
   const stocks = await getTrackedStocks()
   if (stocks.length === 0) {
     throw new Error('No tracked stocks found. Run the seed step first.')
   }
 
-  const trackedSymbols = new Set(stocks.map((stock) => stock.providerSymbol.toUpperCase()))
+  const requestedDate = targetDate ?? getKualaLumpurDateString()
   const syncRun = await prisma.syncRun.create({
     data: {
       provider: 'EODHD',
-      targetDate: toStartOfUtcDay(targetDate),
+      targetDate: toStartOfUtcDay(requestedDate),
       status: 'pending',
     },
   })
 
   try {
-    const providerRows = await fetchEodhdExchangeBars(targetDate)
-    const normalizedBars = normalizeEodhdBulkResponse(providerRows, trackedSymbols)
+    const normalizedBars = await fetchEodhdTrackedBars(
+      stocks.map((stock) => stock.providerSymbol),
+      { targetDate },
+    )
     const stockBySymbol = new Map(stocks.map((stock) => [stock.providerSymbol.toUpperCase(), stock]))
 
     let rowsInserted = 0
@@ -302,12 +304,22 @@ export async function runDailySync(targetDate = getKualaLumpurDateString()): Pro
         finishedAt: new Date(),
         rowsInserted,
         rowsUpdated,
+        targetDate: normalizedBars[0]
+          ? toStartOfUtcDay(
+              normalizedBars.reduce((latest, bar) =>
+                !latest || bar.tradingDate > latest ? bar.tradingDate : latest,
+              ''),
+            )
+          : toStartOfUtcDay(requestedDate),
       },
     })
 
     return {
       status: 'success',
-      targetDate,
+      targetDate:
+        normalizedBars.reduce<string | null>((latest, bar) => {
+          return !latest || bar.tradingDate > latest ? bar.tradingDate : latest
+        }, null) ?? requestedDate,
       rowsInserted,
       rowsUpdated,
       matchedStocks: normalizedBars.length,

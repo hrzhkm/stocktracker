@@ -201,183 +201,181 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-[1.45fr_0.95fr]">
-          <Card className="bg-stone-950/45">
-            <CardHeader className="flex-row items-start justify-between gap-4">
+        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+          <Card className="bg-stone-950/35">
+            <CardHeader className="flex-row items-center justify-between">
               <div>
-                <CardTitle>Latest snapshot</CardTitle>
-                <CardDescription className="mt-1">
-                  Browse the full tracked list and select a stock to inspect its
-                  recent history.
-                </CardDescription>
+                <CardTitle>Last sync run</CardTitle>
+                <CardDescription>Scheduled EOD sync status and result</CardDescription>
               </div>
-              <Badge variant="default">{dashboard.stocks.length} stocks</Badge>
+              {dashboard.lastSync ? (
+                <Badge variant={syncBadgeVariant(dashboard.lastSync.status)}>
+                  {dashboard.lastSync.status}
+                </Badge>
+              ) : null}
             </CardHeader>
             <CardContent>
-              <div className="mb-4 md:hidden">
-                <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-stone-400">
-                  Stock
-                </label>
-                <select
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-stone-100 outline-none ring-0"
-                  onChange={(event) => setSelectedCode(event.target.value)}
-                  value={selectedCode ?? ''}
-                >
-                  {dashboard.stocks.map((stock) => (
-                    <option key={stock.stockCode} value={stock.stockCode}>
-                      {stock.stockCode} · {stock.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-white/5 hover:bg-white/5">
-                    <TableHead>Rank</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Trading date</TableHead>
-                    <TableHead className="text-right">Close</TableHead>
-                    <TableHead className="text-right">Volume</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dashboard.stocks.map((stock) => (
-                    <SnapshotRow
-                      key={stock.stockCode}
-                      stock={stock}
-                      selected={stock.stockCode === selectedCode}
-                      onSelect={setSelectedCode}
+              {dashboard.lastSync ? (
+                <div className="space-y-4 text-sm text-stone-200/85">
+                  <SyncInfo label="Target date" value={formatDateLabel(dashboard.lastSync.targetDate)} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <MetricCard
+                      compact
+                      label="Inserted"
+                      value={String(dashboard.lastSync.rowsInserted)}
+                      detail="New rows"
                     />
-                  ))}
-                </TableBody>
-              </Table>
+                    <MetricCard
+                      compact
+                      label="Updated"
+                      value={String(dashboard.lastSync.rowsUpdated)}
+                      detail="Existing rows"
+                    />
+                  </div>
+                  <SyncInfo label="Started" value={formatTimestamp(dashboard.lastSync.startedAt)} />
+                  <SyncInfo label="Finished" value={formatTimestamp(dashboard.lastSync.finishedAt)} />
+                  {dashboard.lastSync.errorSummary ? (
+                    <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+                      {dashboard.lastSync.errorSummary}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5 text-sm leading-6 text-stone-300">
+                  No sync has run yet. Seed the database, then schedule a daily
+                  POST to <code>/api/cron/sync-daily-prices</code> with the
+                  configured secret header.
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-6">
-            <Card className="bg-stone-950/35">
-              <CardHeader className="flex-row items-center justify-between">
+          <Card className="bg-white/6">
+            <CardHeader className="gap-4">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle>Last sync run</CardTitle>
-                  <CardDescription>Scheduled EOD sync status and result</CardDescription>
-                </div>
-                {dashboard.lastSync ? (
-                  <Badge variant={syncBadgeVariant(dashboard.lastSync.status)}>
-                    {dashboard.lastSync.status}
+                  <Badge variant="default" className="w-fit text-emerald-100">
+                    {selectedSnapshot?.stockCode ?? '----'} ·{' '}
+                    {selectedSnapshot?.providerSymbol ?? '----'}
                   </Badge>
+                  <CardTitle className="mt-3 text-3xl">
+                    {selectedSnapshot?.name ?? 'Select a stock'}
+                  </CardTitle>
+                  <CardDescription className="mt-2">
+                    Latest close and recent stored daily history.
+                  </CardDescription>
+                </div>
+                <div className="hidden rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-right md:block">
+                  <p className="text-xs uppercase tracking-[0.22em] text-stone-400">
+                    Latest close
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-stone-50">
+                    {formatPrice(selectedSnapshot?.latestPrice?.close)}
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <MetricCard
+                  compact
+                  label="Open"
+                  value={formatPrice(selectedSnapshot?.latestPrice?.open)}
+                  detail="Latest stored bar"
+                />
+                <MetricCard
+                  compact
+                  label="High"
+                  value={formatPrice(selectedSnapshot?.latestPrice?.high)}
+                  detail="Latest stored bar"
+                />
+                <MetricCard
+                  compact
+                  label="Low"
+                  value={formatPrice(selectedSnapshot?.latestPrice?.low)}
+                  detail="Latest stored bar"
+                />
+                <MetricCard
+                  compact
+                  label="Volume"
+                  value={formatVolume(selectedSnapshot?.latestPrice?.volume)}
+                  detail="Latest stored bar"
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm uppercase tracking-[0.22em] text-stone-300">
+                  <BarChart3 className="size-4" />
+                  Recent history
+                </div>
+                {historyState.status === 'loading' ? (
+                  <div className="flex items-center gap-2 text-xs text-stone-400">
+                    <RefreshCw className="size-3 animate-spin" />
+                    Loading
+                  </div>
+                ) : historyState.data ? (
+                  <span className="text-xs text-stone-400">
+                    {historyState.data.history.length} stored days
+                  </span>
                 ) : null}
-              </CardHeader>
-              <CardContent>
-                {dashboard.lastSync ? (
-                  <div className="space-y-4 text-sm text-stone-200/85">
-                    <SyncInfo label="Target date" value={formatDateLabel(dashboard.lastSync.targetDate)} />
-                    <div className="grid grid-cols-2 gap-3">
-                      <MetricCard
-                        compact
-                        label="Inserted"
-                        value={String(dashboard.lastSync.rowsInserted)}
-                        detail="New rows"
-                      />
-                      <MetricCard
-                        compact
-                        label="Updated"
-                        value={String(dashboard.lastSync.rowsUpdated)}
-                        detail="Existing rows"
-                      />
-                    </div>
-                    <SyncInfo label="Started" value={formatTimestamp(dashboard.lastSync.startedAt)} />
-                    <SyncInfo label="Finished" value={formatTimestamp(dashboard.lastSync.finishedAt)} />
-                    {dashboard.lastSync.errorSummary ? (
-                      <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
-                        {dashboard.lastSync.errorSummary}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5 text-sm leading-6 text-stone-300">
-                    No sync has run yet. Seed the database, then schedule a daily
-                    POST to <code>/api/cron/sync-daily-prices</code> with the
-                    configured secret header.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/6">
-              <CardHeader className="gap-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <Badge variant="default" className="w-fit text-emerald-100">
-                      {selectedSnapshot?.stockCode ?? '----'} ·{' '}
-                      {selectedSnapshot?.providerSymbol ?? '----'}
-                    </Badge>
-                    <CardTitle className="mt-3 text-3xl">
-                      {selectedSnapshot?.name ?? 'Select a stock'}
-                    </CardTitle>
-                    <CardDescription className="mt-2">
-                      Latest close and recent stored daily history.
-                    </CardDescription>
-                  </div>
-                  <div className="hidden rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-right md:block">
-                    <p className="text-xs uppercase tracking-[0.22em] text-stone-400">
-                      Latest close
-                    </p>
-                    <p className="mt-2 text-lg font-semibold text-stone-50">
-                      {formatPrice(selectedSnapshot?.latestPrice?.close)}
-                    </p>
-                  </div>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <MetricCard
-                    compact
-                    label="Open"
-                    value={formatPrice(selectedSnapshot?.latestPrice?.open)}
-                    detail="Latest stored bar"
-                  />
-                  <MetricCard
-                    compact
-                    label="High"
-                    value={formatPrice(selectedSnapshot?.latestPrice?.high)}
-                    detail="Latest stored bar"
-                  />
-                  <MetricCard
-                    compact
-                    label="Low"
-                    value={formatPrice(selectedSnapshot?.latestPrice?.low)}
-                    detail="Latest stored bar"
-                  />
-                  <MetricCard
-                    compact
-                    label="Volume"
-                    value={formatVolume(selectedSnapshot?.latestPrice?.volume)}
-                    detail="Latest stored bar"
-                  />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm uppercase tracking-[0.22em] text-stone-300">
-                    <BarChart3 className="size-4" />
-                    Recent history
-                  </div>
-                  {historyState.status === 'loading' ? (
-                    <div className="flex items-center gap-2 text-xs text-stone-400">
-                      <RefreshCw className="size-3 animate-spin" />
-                      Loading
-                    </div>
-                  ) : historyState.data ? (
-                    <span className="text-xs text-stone-400">
-                      {historyState.data.history.length} stored days
-                    </span>
-                  ) : null}
-                </div>
-                <HistoryPanel historyState={historyState} />
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              <HistoryPanel historyState={historyState} />
+            </CardContent>
+          </Card>
         </div>
+
+        <Card className="bg-stone-950/45">
+          <CardHeader className="flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle>Latest snapshot</CardTitle>
+              <CardDescription className="mt-1">
+                Browse the full tracked list and select a stock to inspect its
+                recent history.
+              </CardDescription>
+            </div>
+            <Badge variant="default">{dashboard.stocks.length} stocks</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 md:hidden">
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-stone-400">
+                Stock
+              </label>
+              <select
+                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-stone-100 outline-none ring-0"
+                onChange={(event) => setSelectedCode(event.target.value)}
+                value={selectedCode ?? ''}
+              >
+                {dashboard.stocks.map((stock) => (
+                  <option key={stock.stockCode} value={stock.stockCode}>
+                    {stock.stockCode} · {stock.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-white/5 hover:bg-white/5">
+                  <TableHead>Rank</TableHead>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Trading date</TableHead>
+                  <TableHead className="text-right">Close</TableHead>
+                  <TableHead className="text-right">Volume</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dashboard.stocks.map((stock) => (
+                  <SnapshotRow
+                    key={stock.stockCode}
+                    stock={stock}
+                    selected={stock.stockCode === selectedCode}
+                    onSelect={setSelectedCode}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </main>
   )

@@ -1,39 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
-import { normalizeEodhdBulkResponse } from './eodhd'
+import { normalizeEodhdSymbolResponse } from './eodhd'
 
-describe('normalizeEodhdBulkResponse', () => {
-  it('keeps only tracked symbols and normalizes four-digit Bursa codes', () => {
-    const bars = normalizeEodhdBulkResponse(
-      [
-        {
-          code: '97',
-          date: '2026-03-10',
-          open: '3.11',
-          high: '3.24',
-          low: '3.01',
-          close: '3.18',
-          volume: '456700',
-          currency: 'MYR',
-        },
-        {
-          code: '9999',
-          date: '2026-03-10',
-          open: '1',
-          high: '1',
-          low: '1',
-          close: '1',
-          volume: '1',
-        },
-      ],
-      new Set(['0097.KLSE']),
-    )
-
-    expect(bars).toEqual([
+describe('normalizeEodhdSymbolResponse', () => {
+  it('maps the latest per-symbol EOD row into a normalized bar', () => {
+    const bar = normalizeEodhdSymbolResponse('0097.KLSE', [
       {
-        providerSymbol: '0097.KLSE',
-        stockCode: '0097',
-        tradingDate: '2026-03-10',
+        date: '2026-03-06',
+        open: 3.02,
+        high: 3.11,
+        low: 2.98,
+        close: 3.07,
+        volume: 320000,
+      },
+      {
+        date: '2026-03-09',
         open: 3.11,
         high: 3.24,
         low: 3.01,
@@ -42,5 +23,17 @@ describe('normalizeEodhdBulkResponse', () => {
         currency: 'MYR',
       },
     ])
+
+    expect(bar).toEqual({
+      providerSymbol: '0097.KLSE',
+      stockCode: '0097',
+      tradingDate: '2026-03-09',
+      open: 3.11,
+      high: 3.24,
+      low: 3.01,
+      close: 3.18,
+      volume: 456700,
+      currency: 'MYR',
+    })
   })
 })
