@@ -142,18 +142,18 @@ function DashboardPage() {
     : null
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#19413f_0%,#102322_34%,#091211_100%)] text-stone-50">
+    <main className="min-h-screen text-slate-900">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
-        <Card className="bg-white/6">
+        <Card className="overflow-hidden border-sky-100/80 bg-white/85">
           <CardHeader className="gap-5 md:flex-row md:items-end md:justify-between">
             <div className="space-y-3">
-              <Badge variant="default" className="w-fit text-emerald-100">
+              <Badge variant="default" className="w-fit">
                 Bursa Malaysia
               </Badge>
               <CardTitle className="max-w-3xl text-4xl md:text-5xl">
                 Top 100 daily tracker with direct dashboard access
               </CardTitle>
-              <CardDescription className="max-w-2xl text-sm leading-6 text-stone-200/75 md:text-base">
+              <CardDescription className="max-w-2xl text-sm leading-6 text-slate-600 md:text-base">
                 No login wall, fixed Bursa Top 100 universe, daily EOD sync
                 status, latest snapshot, and CSV exports for both snapshot and
                 history.
@@ -163,7 +163,7 @@ function DashboardPage() {
               <a
                 className={cn(
                   buttonVariants({ variant: 'default' }),
-                  'bg-emerald-300/15 text-emerald-50 hover:bg-emerald-300/25',
+                  'shadow-[0_10px_24px_-14px_rgba(14,116,144,0.55)]',
                 )}
                 href="/api/exports/latest/csv"
               >
@@ -173,7 +173,7 @@ function DashboardPage() {
               <a
                 className={cn(
                   buttonVariants({ variant: 'secondary' }),
-                  'border-white/15 bg-white/8 text-stone-50 hover:bg-white/14',
+                  'bg-white text-slate-700',
                 )}
                 href="/api/exports/history/csv"
               >
@@ -202,7 +202,7 @@ function DashboardPage() {
         </Card>
 
         <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-          <Card className="bg-stone-950/35">
+          <Card className="bg-white/82">
             <CardHeader className="flex-row items-center justify-between">
               <div>
                 <CardTitle>Last sync run</CardTitle>
@@ -216,7 +216,7 @@ function DashboardPage() {
             </CardHeader>
             <CardContent>
               {dashboard.lastSync ? (
-                <div className="space-y-4 text-sm text-stone-200/85">
+                <div className="space-y-4 text-sm text-slate-600">
                   <SyncInfo label="Target date" value={formatDateLabel(dashboard.lastSync.targetDate)} />
                   <div className="grid grid-cols-2 gap-3">
                     <MetricCard
@@ -235,13 +235,13 @@ function DashboardPage() {
                   <SyncInfo label="Started" value={formatTimestamp(dashboard.lastSync.startedAt)} />
                   <SyncInfo label="Finished" value={formatTimestamp(dashboard.lastSync.finishedAt)} />
                   {dashboard.lastSync.errorSummary ? (
-                    <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-rose-100">
+                    <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
                       {dashboard.lastSync.errorSummary}
                     </div>
                   ) : null}
                 </div>
               ) : (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5 text-sm leading-6 text-stone-300">
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-600">
                   No sync has run yet. Seed the database, then schedule a daily
                   POST to <code>/api/cron/sync-daily-prices</code> with the
                   configured secret header.
@@ -250,11 +250,11 @@ function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white/6">
+          <Card className="bg-white/82">
             <CardHeader className="gap-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Badge variant="default" className="w-fit text-emerald-100">
+                  <Badge variant="default" className="w-fit">
                     {selectedSnapshot?.stockCode ?? '----'} ·{' '}
                     {selectedSnapshot?.providerSymbol ?? '----'}
                   </Badge>
@@ -265,11 +265,11 @@ function DashboardPage() {
                     Latest close and recent stored daily history.
                   </CardDescription>
                 </div>
-                <div className="hidden rounded-2xl border border-white/10 bg-black/15 px-4 py-3 text-right md:block">
-                  <p className="text-xs uppercase tracking-[0.22em] text-stone-400">
+                <div className="hidden rounded-2xl border border-sky-100 bg-sky-50/80 px-4 py-3 text-right md:block">
+                  <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
                     Latest close
                   </p>
-                  <p className="mt-2 text-lg font-semibold text-stone-50">
+                  <p className="mt-2 text-lg font-semibold text-slate-900">
                     {formatPrice(selectedSnapshot?.latestPrice?.close)}
                   </p>
                 </div>
@@ -303,17 +303,17 @@ function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm uppercase tracking-[0.22em] text-stone-300">
+                <div className="flex items-center gap-2 text-sm uppercase tracking-[0.22em] text-slate-500">
                   <BarChart3 className="size-4" />
                   Recent history
                 </div>
                 {historyState.status === 'loading' ? (
-                  <div className="flex items-center gap-2 text-xs text-stone-400">
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
                     <RefreshCw className="size-3 animate-spin" />
                     Loading
                   </div>
                 ) : historyState.data ? (
-                  <span className="text-xs text-stone-400">
+                  <span className="text-xs text-slate-500">
                     {historyState.data.history.length} stored days
                   </span>
                 ) : null}
@@ -323,7 +323,7 @@ function DashboardPage() {
           </Card>
         </div>
 
-        <Card className="bg-stone-950/45">
+        <Card className="bg-white/82">
           <CardHeader className="flex-row items-start justify-between gap-4">
             <div>
               <CardTitle>Latest snapshot</CardTitle>
@@ -336,11 +336,11 @@ function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="mb-4 md:hidden">
-              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-stone-400">
+              <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-slate-500">
                 Stock
               </label>
               <select
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-stone-100 outline-none ring-0"
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none ring-0"
                 onChange={(event) => setSelectedCode(event.target.value)}
                 value={selectedCode ?? ''}
               >
@@ -354,7 +354,7 @@ function DashboardPage() {
 
             <Table>
               <TableHeader>
-                <TableRow className="bg-white/5 hover:bg-white/5">
+                <TableRow className="bg-slate-50 hover:bg-slate-50">
                   <TableHead>Rank</TableHead>
                   <TableHead>Code</TableHead>
                   <TableHead>Name</TableHead>
@@ -390,17 +390,17 @@ function MetricCard(props: {
   return (
     <div
       className={cn(
-        'rounded-[1.4rem] border border-white/10 bg-black/15',
+        'rounded-[1.4rem] border border-slate-200 bg-slate-50/90',
         props.compact ? 'p-4' : 'p-5',
       )}
     >
-      <p className="text-xs uppercase tracking-[0.22em] text-stone-400">
+      <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
         {props.label}
       </p>
-      <p className={cn('mt-2 font-semibold text-stone-50', props.compact ? 'text-xl' : 'text-3xl')}>
+      <p className={cn('mt-2 font-semibold text-slate-900', props.compact ? 'text-xl' : 'text-3xl')}>
         {props.value}
       </p>
-      <p className="mt-2 text-sm text-stone-300/75">{props.detail}</p>
+      <p className="mt-2 text-sm text-slate-600">{props.detail}</p>
     </div>
   )
 }
@@ -408,8 +408,8 @@ function MetricCard(props: {
 function SyncInfo(props: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-stone-400">{props.label}</p>
-      <p className="mt-1 text-base text-stone-50">{props.value}</p>
+      <p className="text-slate-500">{props.label}</p>
+      <p className="mt-1 text-base text-slate-800">{props.value}</p>
     </div>
   )
 }
@@ -422,26 +422,26 @@ function SnapshotRow(props: {
   return (
     <TableRow
       className={cn(
-        'cursor-pointer hover:bg-white/5',
-        props.selected && 'bg-emerald-400/10 hover:bg-emerald-400/10',
+        'cursor-pointer hover:bg-sky-50/70',
+        props.selected && 'bg-sky-100/70 hover:bg-sky-100/70',
       )}
       onClick={() => props.onSelect(props.stock.stockCode)}
     >
-      <TableCell className="text-stone-300">{props.stock.rank}</TableCell>
-      <TableCell className="font-medium text-stone-50">
+      <TableCell className="text-slate-500">{props.stock.rank}</TableCell>
+      <TableCell className="font-medium text-slate-900">
         {props.stock.stockCode}
       </TableCell>
       <TableCell>
-        <div className="font-medium text-stone-50">{props.stock.name}</div>
-        <div className="text-xs text-stone-400">{props.stock.providerSymbol}</div>
+        <div className="font-medium text-slate-900">{props.stock.name}</div>
+        <div className="text-xs text-slate-500">{props.stock.providerSymbol}</div>
       </TableCell>
-      <TableCell className="text-stone-300">
+      <TableCell className="text-slate-600">
         {formatDateLabel(props.stock.latestPrice?.tradingDate ?? null)}
       </TableCell>
-      <TableCell className="text-right text-stone-100">
+      <TableCell className="text-right text-slate-800">
         {formatPrice(props.stock.latestPrice?.close)}
       </TableCell>
-      <TableCell className="text-right text-stone-300">
+      <TableCell className="text-right text-slate-600">
         {formatVolume(props.stock.latestPrice?.volume)}
       </TableCell>
     </TableRow>
@@ -456,7 +456,7 @@ function HistoryPanel(props: {
 }) {
   if (props.historyState.status === 'error') {
     return (
-      <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-100">
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
         {props.historyState.message}
       </div>
     )
@@ -464,7 +464,7 @@ function HistoryPanel(props: {
 
   if (props.historyState.status === 'loading' && !props.historyState.data) {
     return (
-      <div className="rounded-2xl border border-white/10 bg-black/10 p-4 text-sm text-stone-300">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         Loading history…
       </div>
     )
@@ -474,7 +474,7 @@ function HistoryPanel(props: {
 
   if (history.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 p-4 text-sm text-stone-300">
+      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
         No daily price history stored for this stock yet.
       </div>
     )
@@ -483,7 +483,7 @@ function HistoryPanel(props: {
   return (
     <Table>
       <TableHeader>
-        <TableRow className="bg-black/15 hover:bg-black/15">
+        <TableRow className="bg-slate-50 hover:bg-slate-50">
           <TableHead>Date</TableHead>
           <TableHead className="text-right">Open</TableHead>
           <TableHead className="text-right">High</TableHead>
@@ -503,21 +503,21 @@ function HistoryPanel(props: {
 
 function HistoryRow(props: { bar: DailyBar }) {
   return (
-    <TableRow className="bg-white/[0.015] hover:bg-white/[0.03]">
+    <TableRow className="bg-white/60 hover:bg-sky-50/50">
       <TableCell>{formatDateLabel(props.bar.tradingDate)}</TableCell>
-      <TableCell className="text-right text-stone-100">
+      <TableCell className="text-right text-slate-800">
         {formatPrice(props.bar.open)}
       </TableCell>
-      <TableCell className="text-right text-stone-100">
+      <TableCell className="text-right text-slate-800">
         {formatPrice(props.bar.high)}
       </TableCell>
-      <TableCell className="text-right text-stone-100">
+      <TableCell className="text-right text-slate-800">
         {formatPrice(props.bar.low)}
       </TableCell>
-      <TableCell className="text-right text-stone-50">
+      <TableCell className="text-right text-slate-900">
         {formatPrice(props.bar.close)}
       </TableCell>
-      <TableCell className="text-right text-stone-300">
+      <TableCell className="text-right text-slate-600">
         {formatVolume(props.bar.volume)}
       </TableCell>
     </TableRow>
