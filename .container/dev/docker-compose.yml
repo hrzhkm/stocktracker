@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: .container/dev/Dockerfile
+    container_name: atanstack-boilerplate-dev
+    restart: unless-stopped
+    ports:
+    - "3000:3000"
+    env_file:
+    - ../../.env.local
+    networks:
+    - atanstack-dev-network
+    volumes:
+    - ../../.:/app
+    - atanstack-dev-node-modules-volume:/app/node_modules
+    working_dir: /app
+    command: pnpm dev --host 0.0.0.0
+
+networks:
+  atanstack-dev-network:
+    driver: bridge
+
+volumes:
+  atanstack-dev-node-modules-volume:
+    driver: local

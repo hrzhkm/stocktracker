@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: .container/stg/Dockerfile
+    container_name: atanstack-boilerplate-stg
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    env_file:
+    - ../../.env.local
+    networks:
+    - atanstack-stg-network
+
+networks:
+  atanstack-stg-network:
+  driver: bridge
