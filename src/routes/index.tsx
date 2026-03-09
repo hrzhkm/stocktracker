@@ -145,7 +145,7 @@ function DashboardPage() {
     <main className="min-h-screen text-slate-900">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <Card className="overflow-hidden border-sky-100/80 bg-white/85">
-          <CardHeader className="gap-5 md:flex-row md:items-end md:justify-between">
+          <CardHeader className="gap-5">
             <div className="space-y-3">
               <Badge variant="default" className="w-fit">
                 Bursa Malaysia
@@ -158,28 +158,6 @@ function DashboardPage() {
                 status, latest snapshot, and CSV exports for both snapshot and
                 history.
               </CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <a
-                className={cn(
-                  buttonVariants({ variant: 'default' }),
-                  'shadow-[0_10px_24px_-14px_rgba(14,116,144,0.55)]',
-                )}
-                href="/api/exports/latest/csv"
-              >
-                <Download className="size-4" />
-                Latest CSV
-              </a>
-              <a
-                className={cn(
-                  buttonVariants({ variant: 'secondary' }),
-                  'bg-white text-slate-700',
-                )}
-                href="/api/exports/history/csv"
-              >
-                <Download className="size-4" />
-                History CSV
-              </a>
             </div>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-3">
@@ -326,13 +304,35 @@ function DashboardPage() {
         <Card className="bg-white/82">
           <CardHeader className="flex-row items-start justify-between gap-4">
             <div>
-              <CardTitle>Latest snapshot</CardTitle>
+              <CardTitle>Latest Stock Prices</CardTitle>
               <CardDescription className="mt-1">
                 Browse the full tracked list and select a stock to inspect its
                 recent history.
               </CardDescription>
             </div>
-            <Badge variant="default">{dashboard.stocks.length} stocks</Badge>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <Badge variant="default">{dashboard.stocks.length} stocks</Badge>
+              <a
+                className={cn(
+                  buttonVariants({ variant: 'default', size: 'sm' }),
+                  'shadow-[0_10px_24px_-14px_rgba(14,116,144,0.55)]',
+                )}
+                href="/api/exports/latest/csv"
+              >
+                <Download className="size-4" />
+                Download CSV
+              </a>
+              <a
+                className={cn(
+                  buttonVariants({ variant: 'secondary', size: 'sm' }),
+                  'bg-white text-slate-700',
+                )}
+                href="/api/exports/history/csv"
+              >
+                <Download className="size-4" />
+                History CSV
+              </a>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="mb-4 md:hidden">
