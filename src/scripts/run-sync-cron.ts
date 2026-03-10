@@ -66,14 +66,6 @@ async function readJson(response: Response) {
 }
 
 async function postCronEndpoint(targetDate: string | undefined, timeoutMs: number) {
-  const secret = process.env.STOCK_SYNC_CRON_SECRET
-  if (!secret) {
-    throw new HttpSyncError(
-      'STOCK_SYNC_CRON_SECRET is not configured for HTTP cron calls',
-      false,
-    )
-  }
-
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -82,7 +74,6 @@ async function postCronEndpoint(targetDate: string | undefined, timeoutMs: numbe
       method: 'POST',
       headers: {
         accept: 'application/json',
-        'x-cron-secret': secret,
       },
       signal: controller.signal,
     })

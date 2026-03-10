@@ -19,7 +19,6 @@ jobs:
     env:
       DATABASE_URL: postgresql://stocktracker:stocktracker@localhost:5432/stocktracker
       EODHD_API_KEY: ci-placeholder
-      STOCK_SYNC_CRON_SECRET: ci-placeholder
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

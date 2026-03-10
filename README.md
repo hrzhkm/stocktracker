@@ -24,7 +24,6 @@ Configure:
 
 - `DATABASE_URL`
 - `EODHD_API_KEY`
-- `STOCK_SYNC_CRON_SECRET`
 
 Initialize the database:
 
@@ -72,7 +71,6 @@ Docker Compose variables live in `.container/stg/.env`.
 - `POSTGRES_USER`
 - `POSTGRES_PASSWORD`
 - `EODHD_API_KEY`
-- `STOCK_SYNC_CRON_SECRET`
 
 Dashboard:
 
@@ -86,7 +84,6 @@ CSV exports:
 Scheduled sync endpoint:
 
 - `POST /api/cron/sync-daily-prices`
-- Header: `x-cron-secret: <STOCK_SYNC_CRON_SECRET>`
 - Optional query param: `?date=2026-03-10`
 
 Manual local sync:
@@ -136,7 +133,6 @@ Type=oneshot
 WorkingDirectory=/path/to/stocktracker
 Environment=DATABASE_URL=postgresql://...
 Environment=EODHD_API_KEY=...
-Environment=STOCK_SYNC_CRON_SECRET=...
 Environment=STOCK_SYNC_APP_URL=http://127.0.0.1:3000
 ExecStart=/usr/bin/pnpm stocks:cron
 ```

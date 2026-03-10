@@ -221,8 +221,7 @@ function DashboardPage() {
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-600">
                   No sync has run yet. Seed the database, then schedule a daily
-                  POST to <code>/api/cron/sync-daily-prices</code> with the
-                  configured secret header.
+                  POST to <code>/api/cron/sync-daily-prices</code>.
                 </div>
               )}
             </CardContent>
