@@ -156,6 +156,12 @@ It does three things:
 - runs `pnpm build`
 - deploys the stack locally with Docker Compose
 
+When the app container starts, it also runs:
+
+- `prisma migrate deploy`
+- `prisma db push --skip-generate`
+- `prisma db seed`
+
 Runner requirements:
 
 - Docker
