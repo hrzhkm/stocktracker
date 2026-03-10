@@ -1,0 +1,54 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stocktracker-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      DATABASE_URL: postgresql://stocktracker:stocktracker@localhost:5432/stocktracker
+      EODHD_API_KEY: ci-placeholder
+      STOCK_SYNC_CRON_SECRET: ci-placeholder
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Write deploy env file
+        env:
+          DEPLOY_ENV_FILE: ${{ secrets.DEPLOY_ENV_FILE }}
+        run: |
+          printf '%s\n' "$DEPLOY_ENV_FILE" > .container/stg/.env
+
+      - name: Deploy with Docker Compose
+        run: docker compose --env-file .container/stg/.env -f .container/stg/docker-compose.yml up -d --build --remove-orphans

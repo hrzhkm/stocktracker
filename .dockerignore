@@ -1,0 +1,9 @@
+.git
+.github
+.output
+.tanstack
+.vscode
+.container/stg/.env
+.env
+.env.local
+node_modules

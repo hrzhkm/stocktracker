@@ -1,19 +1,39 @@
-FROM node:24-alpine
+FROM node:22-alpine AS base
 
-# Enable corepack
 RUN corepack enable
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY app/package.json app/pnpm-lock.yaml ./
+FROM base AS deps
 
-# Install dependencies
-RUN pnpm install
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-# Export port 3000
-EXPOSE 3000
+FROM deps AS build
 
-# Start the app
-CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "3000"]
+COPY . .
+RUN pnpm build
+
+FROM base AS prod-deps
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --frozen-lockfile
+
+FROM node:22-alpine AS runtime
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV HOST=0.0.0.0
+ENV PORT=7000
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=build /app/.output ./.output
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+
+EXPOSE 7000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 CMD wget -qO- http://127.0.0.1:7000/ >/dev/null || exit 1
+
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node .output/server/index.mjs"]

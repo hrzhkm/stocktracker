@@ -1,17 +1,51 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: stocktracker-postgres-stg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-stocktracker}
+      POSTGRES_USER: ${POSTGRES_USER:-stocktracker}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stocktracker}
+    ports:
+      - "7001:5432"
+    volumes:
+      - stocktracker-stg-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stocktracker} -d ${POSTGRES_DB:-stocktracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - stocktracker-stg-network
+
   app:
     build:
       context: ../..
       dockerfile: .container/stg/Dockerfile
-    container_name: atanstack-boilerplate-stg
+    image: ${APP_IMAGE:-stocktracker-app:local}
+    container_name: stocktracker-app-stg
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
-      - 3000:3000
-    env_file:
-    - ../../.env.local
+      - "7000:7000"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 7000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-stocktracker}:${POSTGRES_PASSWORD:-stocktracker}@postgres:5432/${POSTGRES_DB:-stocktracker}
+      EODHD_API_KEY: ${EODHD_API_KEY:-}
+      EODHD_BASE_URL: ${EODHD_BASE_URL:-https://eodhd.com/api}
+      STOCK_SYNC_CRON_SECRET: ${STOCK_SYNC_CRON_SECRET:-dev-secret-change-me}
+      STOCK_SYNC_APP_URL: http://app:7000
     networks:
-    - atanstack-stg-network
+      - stocktracker-stg-network
 
 networks:
-  atanstack-stg-network:
-  driver: bridge
+  stocktracker-stg-network:
+    driver: bridge
+
+volumes:
+  stocktracker-stg-postgres:
