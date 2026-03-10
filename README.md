@@ -61,6 +61,51 @@ pnpm stocks:sync
 pnpm stocks:sync 2026-03-10
 ```
 
+Production cron runner with HTTP retry and direct fallback:
+
+```bash
+pnpm stocks:cron
+pnpm stocks:cron 2026-03-10
+```
+
+`stocks:cron` behavior:
+
+- tries `POST /api/cron/sync-daily-prices` first
+- retries the HTTP call up to `STOCK_SYNC_MAX_RETRIES` times
+- waits `STOCK_SYNC_RETRY_DELAY_MS` between attempts
+- falls back to running the sync directly in-process if the HTTP endpoint keeps failing
+
+Optional runtime env vars for the cron runner:
+
+- `STOCK_SYNC_APP_URL` default: `http://127.0.0.1:3000`
+- `STOCK_SYNC_CRON_URL` override the full cron endpoint URL
+- `STOCK_SYNC_MAX_RETRIES` default: `3`
+- `STOCK_SYNC_RETRY_DELAY_MS` default: `30000`
+- `STOCK_SYNC_HTTP_TIMEOUT_MS` default: `120000`
+- `STOCK_SYNC_SKIP_HTTP=1` to skip the HTTP call and always use the direct fallback
+
+Example Linux crontab entry:
+
+```cron
+30 18 * * 1-5 cd /path/to/stocktracker && /usr/bin/pnpm stocks:cron >> /var/log/stocktracker-sync.log 2>&1
+```
+
+Example `systemd` service:
+
+```ini
+[Unit]
+Description=Stocktracker daily sync
+
+[Service]
+Type=oneshot
+WorkingDirectory=/path/to/stocktracker
+Environment=DATABASE_URL=postgresql://...
+Environment=EODHD_API_KEY=...
+Environment=STOCK_SYNC_CRON_SECRET=...
+Environment=STOCK_SYNC_APP_URL=http://127.0.0.1:3000
+ExecStart=/usr/bin/pnpm stocks:cron
+```
+
 ### Verify
 
 ```bash
