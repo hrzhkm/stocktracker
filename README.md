@@ -5,6 +5,7 @@ TanStack Start app for tracking the Bursa Malaysia Top 100 stocks with a direct 
 ### Features
 
 - fixed seeded Bursa Top 100 universe
+- seed backfills recent real price data from EODHD
 - daily OHLCV storage in Postgres with Prisma
 - latest snapshot dashboard
 - per-stock recent history

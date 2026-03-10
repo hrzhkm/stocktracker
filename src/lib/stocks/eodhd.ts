@@ -4,6 +4,8 @@ type EodhdRawBar = Record<string, unknown>
 
 type FetchTrackedBarsOptions = {
   targetDate?: string
+  fromDate?: string
+  toDate?: string
   concurrency?: number
 }
 
@@ -27,7 +29,10 @@ function chunk<T>(items: T[], size: number) {
   return output
 }
 
-function createApiUrl(symbol: string, targetDate?: string) {
+function createApiUrl(
+  symbol: string,
+  options: Pick<FetchTrackedBarsOptions, 'targetDate' | 'fromDate' | 'toDate'> = {},
+) {
   const apiKey = process.env.EODHD_API_KEY
 
   if (!apiKey) {
@@ -39,32 +44,24 @@ function createApiUrl(symbol: string, targetDate?: string) {
   url.searchParams.set('api_token', apiKey)
   url.searchParams.set('fmt', 'json')
 
-  if (targetDate) {
-    url.searchParams.set('from', targetDate)
-    url.searchParams.set('to', targetDate)
+  if (options.targetDate) {
+    url.searchParams.set('from', options.targetDate)
+    url.searchParams.set('to', options.targetDate)
   } else {
-    url.searchParams.set('from', '2000-01-01')
-    url.searchParams.set('to', new Date().toISOString().slice(0, 10))
+    url.searchParams.set('from', options.fromDate ?? '2000-01-01')
+    url.searchParams.set('to', options.toDate ?? new Date().toISOString().slice(0, 10))
   }
 
   return url
 }
 
-export function normalizeEodhdSymbolResponse(
-  providerSymbol: string,
-  rows: EodhdRawBar[],
-): NormalizedProviderBar | null {
-  const latestRow = rows.at(-1)
-  if (!latestRow) {
-    return null
-  }
-
-  const tradingDate = String(latestRow.date ?? '').slice(0, 10)
-  const open = coerceNumber(latestRow.open)
-  const high = coerceNumber(latestRow.high)
-  const low = coerceNumber(latestRow.low)
-  const close = coerceNumber(latestRow.close)
-  const volume = coerceNumber(latestRow.volume)
+function normalizeEodhdRow(providerSymbol: string, row: EodhdRawBar): NormalizedProviderBar | null {
+  const tradingDate = String(row.date ?? '').slice(0, 10)
+  const open = coerceNumber(row.open)
+  const high = coerceNumber(row.high)
+  const low = coerceNumber(row.low)
+  const close = coerceNumber(row.close)
+  const volume = coerceNumber(row.volume)
 
   if (
     !tradingDate ||
@@ -86,12 +83,32 @@ export function normalizeEodhdSymbolResponse(
     low,
     close,
     volume,
-    currency: String(latestRow.currency ?? 'MYR'),
+    currency: String(row.currency ?? 'MYR'),
   }
 }
 
-async function fetchEodhdSymbolBars(providerSymbol: string, targetDate?: string) {
-  const response = await fetch(createApiUrl(providerSymbol, targetDate), {
+export function normalizeEodhdSymbolHistoryResponse(
+  providerSymbol: string,
+  rows: EodhdRawBar[],
+) {
+  return rows.flatMap((row) => {
+    const normalized = normalizeEodhdRow(providerSymbol, row)
+    return normalized ? [normalized] : []
+  })
+}
+
+export function normalizeEodhdSymbolResponse(
+  providerSymbol: string,
+  rows: EodhdRawBar[],
+): NormalizedProviderBar | null {
+  return normalizeEodhdSymbolHistoryResponse(providerSymbol, rows).at(-1) ?? null
+}
+
+async function fetchEodhdSymbolBars(
+  providerSymbol: string,
+  options: Pick<FetchTrackedBarsOptions, 'targetDate' | 'fromDate' | 'toDate'> = {},
+) {
+  const response = await fetch(createApiUrl(providerSymbol, options), {
     headers: {
       accept: 'application/json',
     },
@@ -121,7 +138,7 @@ export async function fetchEodhdTrackedBars(
   for (const group of chunk(providerSymbols, concurrency)) {
     const settled = await Promise.allSettled(
       group.map(async (providerSymbol) => {
-        const rows = await fetchEodhdSymbolBars(providerSymbol, options.targetDate)
+        const rows = await fetchEodhdSymbolBars(providerSymbol, options)
         return normalizeEodhdSymbolResponse(providerSymbol, rows)
       }),
     )
@@ -129,6 +146,31 @@ export async function fetchEodhdTrackedBars(
     for (const result of settled) {
       if (result.status === 'fulfilled' && result.value) {
         output.push(result.value)
+      }
+    }
+  }
+
+  return output
+}
+
+export async function fetchEodhdTrackedBarsForDateRange(
+  providerSymbols: string[],
+  options: Pick<FetchTrackedBarsOptions, 'fromDate' | 'toDate' | 'concurrency'>,
+) {
+  const concurrency = options.concurrency ?? 5
+  const output: NormalizedProviderBar[] = []
+
+  for (const group of chunk(providerSymbols, concurrency)) {
+    const settled = await Promise.allSettled(
+      group.map(async (providerSymbol) => {
+        const rows = await fetchEodhdSymbolBars(providerSymbol, options)
+        return normalizeEodhdSymbolHistoryResponse(providerSymbol, rows)
+      }),
+    )
+
+    for (const result of settled) {
+      if (result.status === 'fulfilled') {
+        output.push(...result.value)
       }
     }
   }
